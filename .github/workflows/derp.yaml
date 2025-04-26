@@ -1,12 +1,12 @@
-name: Auto Build & Release Derper
+name: Build Derper on Push
 
 on:
   push:
-    tags:
-      - 'v*'  # 匹配所有 v1.0.0 形式的 tag
+    branches:
+      - main  # 可按需改成你的主分支名
 
 jobs:
-  build-release:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -27,11 +27,8 @@ jobs:
           mkdir -p ./bin
           cp $HOME/go/bin/derper ./bin/derper
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+      - name: Upload Derper artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: Release ${{ github.ref_name }}
-          tag_name: ${{ github.ref_name }}
-          files: ./bin/derper
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: derper
+          path: ./bin/derper
