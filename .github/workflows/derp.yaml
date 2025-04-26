@@ -20,19 +20,23 @@ jobs:
         with:
           go-version: '1.24.2'  # 使用你需要的 Go 版本
 
-      - name: Install dependencies
-        run: go get tailscale.com/cmd/derper
+      - name: Create Go module
+        run: |
+          mkdir derper
+          cd derper
+          go mod init derper
+          go get tailscale.com/cmd/derper
 
       - name: Build Derper
         run: |
-          cd $(go env GOPATH)/pkg/mod/tailscale*/cmd/derper
-          go build -o derper
+          cd derper
+          go install tailscale.com/cmd/derper@latest
 
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
           tag: ${{ github.ref }}
-          files: derper
+          files: $(go env GOPATH)/bin/derper
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
