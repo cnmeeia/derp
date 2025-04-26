@@ -14,7 +14,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Go (latest)
+      - name: Set up Go (latest stable)
         uses: actions/setup-go@v5
         with:
           go-version: 'stable'
@@ -30,15 +30,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
-      - name: Download Derper
-        run: go get tailscale.com/cmd/derper@latest
+      - name: Install Derper
+        run: go install tailscale.com/cmd/derper@latest
 
-      - name: Build Derper
-        run: go build -o derper tailscale.com/cmd/derper
+      - name: Prepare Derper binary
+        run: |
+          mkdir -p ./bin
+          cp $HOME/go/bin/derper ./bin/derper
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v1
         with:
-          files: derper
+          files: ./bin/derper
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
