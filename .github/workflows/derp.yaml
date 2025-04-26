@@ -1,13 +1,12 @@
-name: Build and Release Derper
+name: Auto Build & Release Derper
 
 on:
   push:
-    branches: [main]
-  release:
-    types: [created]
+    tags:
+      - 'v*'  # 匹配所有 v1.0.0 形式的 tag
 
 jobs:
-  build:
+  build-release:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,16 +19,6 @@ jobs:
           go-version: 'stable'
           check-latest: true
 
-      - name: Cache Go modules
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-
       - name: Install Derper
         run: go install tailscale.com/cmd/derper@latest
 
@@ -38,10 +27,11 @@ jobs:
           mkdir -p ./bin
           cp $HOME/go/bin/derper ./bin/derper
 
-      - name: Upload Release Asset
-        if: github.event_name == 'release'
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
+          name: Release ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
           files: ./bin/derper
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
