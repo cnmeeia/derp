@@ -1,0 +1,38 @@
+name: Build Derper
+
+on:
+  push:
+    branches:
+      - main  # 你可以根据需要修改分支名称
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.24.2'  # 使用你需要的 Go 版本
+
+      - name: Install dependencies
+        run: go get tailscale.com/cmd/derper
+
+      - name: Build Derper
+        run: |
+          cd $(go env GOPATH)/pkg/mod/tailscale*/cmd/derper
+          go build -o derper
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag: ${{ github.ref }}
+          files: derper
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
