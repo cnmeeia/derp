@@ -36,7 +36,7 @@ jobs:
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          tag: ${{ github.ref }}
-          files: $(go env GOPATH)/bin/derper
+          tag_name: ${{ github.ref }}  # 使用 tag_name 而不是 tag
+          files: ${{ github.workspace }}/derper/bin/derper  # 确保路径正确
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
