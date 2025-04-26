@@ -1,9 +1,9 @@
-name: Build Derper
+name: Build and Release Derper
 
 on:
   push:
     branches:
-      - main  # 你可以根据需要修改分支名称
+      - main # 根据需要修改你的主要分支名称
   release:
     types: [created]
 
@@ -13,30 +13,26 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4 # 推荐使用 v4 以获取最新功能和安全修复
 
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v5 # 推荐使用 v5 以获取最新功能和安全修复
         with:
-          go-version: '1.24.2'  # 使用你需要的 Go 版本
+          go-version: '1.24.2' # 使用指定的 Go 版本
 
-      - name: Create Go module
-        run: |
-          mkdir derper
-          cd derper
-          go mod init derper
-          go get tailscale.com/cmd/derper
+      - name: Install Derper Dependencies
+        run: go install tailscale.com/cmd/derper@latest
 
       - name: Build Derper
         run: |
-          cd derper
-          go install tailscale.com/cmd/derper@latest
+          go build -o derper tailscale.com/cmd/derper
 
-      - name: Create Release
-        id: create_release
-        uses: softprops/action-gh-release@v1
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
         with:
-          tag_name: ${{ github.ref }}  # 使用 tag_name 而不是 tag
-          files: ${{ github.workspace }}/derper/bin/derper  # 确保路径正确
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ${{ github.workspace }}/derper
+          asset_name: derper-linux-amd64 # 可以根据构建目标进行调整
+          asset_content_type: application/octet-stream
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
