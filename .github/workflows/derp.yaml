@@ -2,8 +2,7 @@ name: Build and Release Derper
 
 on:
   push:
-    branches:
-      - main # 根据需要修改你的主要分支名称
+    branches: [main]
   release:
     types: [created]
 
@@ -15,25 +14,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Go
+      - name: Set up Go (latest)
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24.2'
+          go-version: 'stable'
+          check-latest: true
 
-      - name: Initialize Go Module and Get Derper
-        run: |
-          go mod init myderper # 将 'myderper' 替换为你希望的模块名称
-          go get tailscale.com/cmd/derper@latest
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Download Derper
+        run: go get tailscale.com/cmd/derper@latest
 
       - name: Build Derper
         run: go build -o derper tailscale.com/cmd/derper
 
       - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
+        uses: softprops/action-gh-release@v1
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ${{ github.workspace }}/derper
-          asset_name: derper-linux-amd64
-          asset_content_type: application/octet-stream
+          files: derper
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
